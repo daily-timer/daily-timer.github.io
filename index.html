@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Daily Timer</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Kévin Zokpé">
+    <meta name="description" content="l'application stum-watcher permet d'optimiser notre temps de parole lors de notre réunion quotidienne." />
+    <meta name="keywords" content="STUM, Capgemini, Team, Developement, Agile, Kévin Zokpé, Software, France, Rennes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="https://visualpharm.com/assets/806/Stopwatch-595b40b85ba036ed117da415.svg" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css" integrity="sha256-iXUYfkbVl5itd4bAkFH5mjMEN5ld9t3OHvXX3IU8UxU=" crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css?family=Pacifico" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Niramit" rel="stylesheet">
+    <!-- Hotjar Tracking Code for https://daily-timer.github.io/ -->
+    <script>
+        (function(h, o, t, j, a, r) {
+            h.hj = h.hj || function() {
+                (h.hj.q = h.hj.q || []).push(arguments)
+            };
+            h._hjSettings = {
+                hjid: 1059119,
+                hjsv: 6
+            };
+            a = o.getElementsByTagName('head')[0];
+            r = o.createElement('script');
+            r.async = 1;
+            r.src = t + h._hjSettings.hjid + j + h._hjSettings.hjsv;
+            a.appendChild(r);
+        })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=');
+    </script>
+    <style type="text/css">
+        body {
+            font-family: 'Niramit', sans-serif;
+            text-align: center;
+        }
+        
+        #logo {
+            text-align: left;
+        }
+        
+        .btn.active.focus,
+        .btn.active:focus,
+        .btn.focus,
+        .btn.focus:active,
+        .btn:active:focus,
+        .btn:focus {
+            outline: 0 !important;
+            outline-offset: 0 !important;
+            background-image: none !important;
+            -webkit-box-shadow: none !important;
+            box-shadow: none !important;
+        }
+        
+        .page-footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+        
+        #timer {
+            padding-bottom: 20px;
+            font-size: 5em;
+        }
+        
+        .fa-spin {
+            font-size: 38px;
+        }
+        
+        #actualListResult2 {
+            font-size: 2em;
+        }
+        
+        .logoText {
+            /*background: linear-gradient(to right, #30CFD0 0%, #330867 100%);*/
+            background: linear-gradient(to right, #0099e5 50%, #33fff2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding: 10px 0 0 0;
+            font-family: 'Pacifico', cursive;
+            font-size: 60px;
+            height: 99px;
+        }
+        
+        .fa-skype {
+            color: #00aff0;
+        }
+        
+        .fa-twitter {
+            color: #55ACEE;
+        }
+        
+        .fa-google {
+            color: #dd4b39;
+        }
+        
+        .fa-linkedin {
+            color: #007bb5;
+        }
+        
+        .fa-github {
+            color: #444444;
+        }
+        
+        .fa-gitlab {
+            color: #F4731C;
+        }
+        
+        .fa-bitbucket {
+            color: #1a74ed;
+        }
+        
+        .fa-snapchat-ghost {
+            color: #fffc00;
+            text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+        }
+        
+        #fa a:hover {
+            color: gray;
+            text-decoration: none;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="fluid-container">
+        <h1 class="logoText"> Daily Timer </h1>
+        <h1 class="now display-4 text-secondary" style="font-size: 18px; margin-top: -6px"></h1>
+
+        <!--  CONFIG  -->
+        <div id="config" class="justify-content-center">
+            <!--  DUREE  -->
+            <div class="input-group justify-content-center">
+                <div class="form-group">
+                    <h4 class="text-success">Durée</h4>
+                    <select class="form-control" id="stumTimeOptions" onchange="setTimeOnChange()">
+                        <option value="5">5 minutes</option>
+                        <option value="10">10 minutes</option>
+                        <option value="15" selected>15 minutes</option>
+                        <option value="20">20 minutes</option>
+                    </select>
+                </div>
+            </div>
+
+            <!--  LISTE PARTICIPANTS  -->
+            <h4 class="text-success">Liste des participants</h4>
+            <form class="form-inline justify-content-center">
+                <input id="inputList" class="form-control form-control col-4" type="text" placeholder="Kevin, Mathieu ..." autofocus="autofocus" />
+                <div style="margin-left: 6px">
+                    <button id="btnListAdd" type="button" class="btn btn-primary"><i class="fa fa-plus-circle"></i></button>
+                    <button id="BtnListDelete" type="button" class="btn btn-danger"> <i class="fa fa-trash"></i></button>
+                </div>
+            </form>
+            <small id="listHelp" class="form-text text-muted">Un ou plusieurs participants séparés par des virgules</small>
+
+            <div id="listResult" style="margin: 10px 80px 20px 80px">
+                <span id="actualListResult" style="font-size: 1.5em; color: #5cb85c"></span>
+            </div>
+            <button id="btnListValidate" type="button" class="btn btn-success"><i class="fa fa-check"></i></button>
+        </div>
+
+        <!--  TIMER  -->
+        <div>
+            <span id="timer" style="color: #5cb85c; "></span>
+        </div>
+        <!--  LOADER  -->
+        <div id="loader">
+            <i class="fa fa-spinner fa-spin" style="color:#5cb85c;"></i>
+        </div>
+
+        <div id="randomPerson" style="font-size: 8em; margin: -15px 0 -15px 0"></div>
+
+        <div id="listResult2" style="margin: 6px 0px 15px 0px">
+            <span id="actualListResult2" style="color: #5cb85c"></span>
+        </div>
+
+        <button type="button" class="btn btn-primary btn-lg" id="startBtn" style="margin-bottom: 100px">Démarrer le DSTUM</button>
+        <button type="button" class="btn btn-secondary btn-lg" id="resetBtn" style="margin-bottom: 100px"><i class="fa fa-cog"></i></button>
+        <button type="button" class="btn btn-danger btn-lg" id="restartBtn" style="margin-bottom: 100px"><i class="fa fa-refresh" style="font-size:24px"></i></button>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js" integrity="sha256-egVvxkq6UBCQyKzRBrDHu8miZ5FOaVrjSqQqauKglKc=" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+    <script type="text/javascript">
+        // Set curent Date and Time
+        moment.locale('fr')
+        displayTime();
+
+        function displayTime() {
+            $('.now').text(moment().format('Do MMMM YYYY, HH:mm:ss'))
+            setTimeout(displayTime, 1000);
+        }
+
+        var peopleArray = [];
+        var selectedStumTime = $('#stumTimeOptions').val(); // Default STUM time
+        function setTimeOnChange() {
+            selectedStumTime = $('#stumTimeOptions').val();
+            localStorage.setItem('oldStumTime', selectedStumTime);
+        }
+
+        // CHECKING LOCAL STORAGE
+        if ("stumTime" in localStorage && "peopleArray" in localStorage) {
+            selectedStumTime = localStorage.getItem('stumTime');
+            peopleArray = localStorage.getItem('peopleArray').split(",");
+            rmConfigVueAndShowTime();
+        } else if ("oldPeopleArray" in localStorage && "oldStumTime" in localStorage) {
+
+            selectedStumTime = localStorage.getItem('oldStumTime');
+            $('#stumTimeOptions').val(selectedStumTime);
+            peopleArray = localStorage.getItem('oldPeopleArray').split(",");
+
+            $('#actualListResult').text(peopleArray.join(", "));
+            $('#listResult').show();
+            hideSecondViewElements()
+        } else {
+            hideSecondViewElements()
+        }
+
+        function hideSecondViewElements() {
+            $('#timer').hide()
+            $('#startBtn').hide()
+            $('#resetBtn').hide()
+        }
+
+        $('#loader').hide()
+        $('#restartBtn').hide()
+
+        function rmConfigVueAndShowTime() {
+            $('#config').remove();
+            $('#timer').show();
+            $('#actualListResult2').text(peopleArray.join(", "));
+            $('#listResult2').show();
+
+            var timer = document.getElementById('timer')
+            timer.innerHTML = selectedStumTime + ":" + 00 + 0
+            $('#resetBtn').show();
+        }
+
+        // >>>>>> Click
+        $('#btnListAdd').click(function() {
+            manageList("add");
+        });
+        $('html').bind('keypress', function(e) {
+            if (e.keyCode == 13) { // Add name by pressing enter
+                manageList("add");
+                return false;
+            }
+        });
+
+        $('#BtnListDelete').click(function() {
+            manageList("delete");
+        });
+
+        peopleArray.length > 1 ? $('#btnListValidate').show() : $('#btnListValidate').hide()
+        $('#btnListValidate').click(() => {
+            if (peopleArray.length > 0) {
+                rmConfigVueAndShowTime();
+                $('#startBtn').show();
+                saveConfig(selectedStumTime, peopleArray)
+            }
+            localStorage.removeItem('oldPeopleArray');
+            localStorage.removeItem('oldStumTime');
+        });
+
+        function saveConfig(time, peopleArray) {
+            if (typeof(Storage) !== "undefined") {
+                // Code for localStorage/sessionStorage.
+                if (("stumTime" in localStorage && "peopleArray" in localStorage)) {} else {
+                    localStorage.setItem("stumTime", time);
+                    localStorage.setItem("peopleArray", peopleArray);
+
+                    swal({
+                        title: ('Parfait'),
+                        text: "Les paramètres du DSTUM sont enregistrés pour les prochaines fois",
+                        type: 'success',
+                        confirmButtonText: 'Génial !',
+                        confirmButtonColor: '#28a745'
+                    })
+                }
+            } else {
+                // Sorry! No Web Storage support..
+                swal({
+                    title: 'Mince !',
+                    text: "La configuration n'a pas vu être enregistré à cause de votre navigateur",
+                    type: 'warning',
+                    confirmButtonText: 'Pas grave',
+                    cancelButtonText: 'Ok, je change de navigateur',
+                    confirmButtonColor: '#f8bb86'
+                })
+            }
+        }
+
+        function manageList(from) {
+            var arraySplited = $("#inputList").val().split(',');
+            arraySplited.forEach(function(name) {
+                var name = name.replace(/\s/g, ''); // Suppression des espaces
+                if (name != '' && name !== undefined && name != "undefined" && name != "null" && name != null) {
+
+                    if (from === 'add') {
+                        peopleArray.push(name);
+                        $("#inputList").val("");
+                    } else if (from === 'delete') {
+                        var index = peopleArray.indexOf(name);
+                        if (index > -1) {
+                            peopleArray.splice(index, 1);
+                            $("#inputList").val("");
+                        };
+                    }
+
+                    peopleArray.length == 0 ? localStorage.removeItem('oldPeopleArray') : localStorage.setItem('oldPeopleArray', peopleArray)
+                }
+            });
+            $('#actualListResult').text(peopleArray.join(", "));
+            peopleArray.length > 1 ? $('#btnListValidate').show() : $('#btnListValidate').hide();
+        }
+        // >>>>>>
+
+        $('#resetBtn').click(function() {
+            localStorage.clear();
+            location.reload();
+
+            localStorage.setItem('oldPeopleArray', peopleArray)
+            localStorage.setItem('oldStumTime', selectedStumTime)
+        })
+
+        $('#restartBtn').click(function() {
+            location.reload()
+        })
+
+        $('#startBtn').one("click", function() {
+            startTimer();
+            $('#loader').show()
+            $('#restartBtn').show()
+            $('#resetBtn').hide()
+            $('.footer-copyright').hide();
+        })
+
+        $('#startBtn').click(function() {
+            var startBtn = document.getElementById("startBtn")
+            var randomPersonText = document.getElementById("randomPerson")
+            var randomIndex = Math.floor(Math.random() * peopleArray.length)
+
+            var randomPersonValue = peopleArray.splice(randomIndex, 1)[0]; // Mise à jour des participants
+            $('#actualListResult2').text(peopleArray.join(", "));
+
+            startBtn.innerHTML = "Personne suivante ?";
+            randomPersonText.innerHTML = randomPersonValue
+
+            if (randomPersonValue == null) {
+                swal({
+                    title: 'Super DSTUM!',
+                    text: "Tous les membres de l'équipe ont parlé en moins de " + selectedStumTime + " minutes !",
+                    type: 'success',
+                    confirmButtonText: 'Fantastique !',
+                    confirmButtonColor: '#28a745'
+                })
+
+                $('#loader').hide()
+                $('#timer').hide()
+                $('#startBtn').hide()
+                $('#listResult2').hide()
+
+                randomPersonText.innerHTML = 'Merci à tous'
+            }
+        });
+
+        function startTimer() {
+            var presentTime = document.getElementById('timer').innerHTML;
+            var timeArray = presentTime.split(/[:]+/)
+            var m = timeArray[0]
+            var s = checkSecond((timeArray[1] - 1))
+            if (s == 59) {
+                m = m - 1
+            }
+
+            document.getElementById('timer').innerHTML = m + ":" + s
+            if (m < 0) {
+
+                // Start negative timer here
+                swal({
+                    title: 'Attention!',
+                    text: "Cela fait plus de " + selectedStumTime + " minutes que vous êtes en DSTUM !",
+                    type: 'warning',
+                    confirmButtonText: 'Ok, on fait vite!',
+                    confirmButtonColor: '#f8bb86'
+                })
+
+                startBadTimer();
+            } else {
+                setTimeout(startTimer, 1000)
+            }
+        }
+
+        function startBadTimer() {
+            var startTimestamp = moment().startOf("day");
+            $('#timer').attr('style', 'color: #dc3545');
+            $('.fa-spin').attr('style', 'color: #dc3545');
+            $('#actualListResult2').attr('style', 'color: #dc3545');
+
+            setInterval(function() {
+                startTimestamp.add(1, 'second');
+                $('#timer').text(startTimestamp.format('mm:ss'));
+            }, 1000);
+        }
+
+        function checkSecond(sec) {
+            if (sec < 10 && sec >= 0) {
+                sec = "0" + sec
+            } // add zero in front of numbers < 10
+            if (sec < 0) {
+                sec = "59"
+            }
+            return sec
+        }
+    </script>
+</body>
+<footer class="page-footer font-small">
+    <div class="footer-copyright text-center py-3">
+        <small class="text-muted"><i class="fa fa-bolt" style="font-size:18px;color:#fdd835"></i> 
+	      by <a href="mailto:ange-kevin.zokpe@capgemini.com,kzokpe@gmail.com?subject=Daily Timer">Kévin ZOKPE</a></small>
+        <div id="fa">
+            <a href="https://plus.google.com/u/0/115791828262485278951" target="_blank" class="fa fa-google"></a>
+            <a href="https://www.snapchat.com/add/zoorosh" target="_blank" class="fa fa-snapchat-ghost"></a>
+
+            <a href="https://github.com/kevin-zokpe" target="_blank" class="fa fa-github"></a>
+            <a href="https://gitlab.com/kevinzokpe" target="_blank" class="fa fa-gitlab"></a>
+            <a href="https://bitbucket.org/kevinzokpe" target="_blank" class="fa fa-bitbucket"></a>
+
+            <a href="https://twitter.com/kevinzokpe" target="_blank" class="fa fa-twitter"></a>
+            <a href="https://www.linkedin.com/in/kevinzokpe/" target="_blank" class="fa fa-linkedin"></a>
+            <a href="sip:ange-kevin.zokpe?call" target="_blank" class="fa fa-skype"></a>
+        </div>
+    </div>
+</footer>
+
+</html>
